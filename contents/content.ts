@@ -1,7 +1,7 @@
 import type { PlasmoCSConfig } from "plasmo"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://docs.google.com/presentation/d/e/*"],
+  matches: ["https://docs.google.com/presentation/d/*"],
   all_frames: true
 }
 
@@ -54,8 +54,7 @@ const observeDynamicGElements = () => {
   console.log("MutationObserver を開始しました")
 }
 
-chrome.runtime.onMessage.addListener((message) => {
-  console.log("content.ts: メッセージを受信", message)
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
   if (message.name === "copyToClipboard") {
     if (textToCopy) {
       navigator.clipboard
@@ -69,6 +68,7 @@ chrome.runtime.onMessage.addListener((message) => {
     } else {
       alert("クリップボードにコピーする要素が見つかりませんでした")
     }
+    sendResponse(textToCopy)
   }
   return true
 })
