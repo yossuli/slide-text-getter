@@ -1,5 +1,3 @@
-import type { PlasmoCSConfig } from "plasmo"
-
 import { sendToContentScript } from "@plasmohq/messaging"
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -20,6 +18,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     await sendToContentScript({
       name: "copyToEditSpace",
       body: res
+    })
+  }
+})
+
+chrome.runtime.onMessage.addListener(async (message) => {
+  if (message.type === "FROM_IFRAME") {
+    const res = await sendToContentScript({
+      name: "copyToClipboardFromIframe",
+      body: message.data
     })
   }
 })

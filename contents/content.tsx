@@ -13,10 +13,9 @@ const EditPopup = () => {
   const [textToEdit, setTextToEdit] = useState("")
   const [isVisible, setIsVisible] = useState(false)
 
-  // メッセージを受け取って表示
   useEffect(() => {
     const messageListener = (message) => {
-      if (message.name === "copyToEditSpace") {
+      if (message.name === "copyToClipboardFromIframe") {
         setTextToEdit(message.body)
       }
     }

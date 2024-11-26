@@ -5,44 +5,81 @@ export const config: PlasmoCSConfig = {
   all_frames: true
 }
 
-let textToCopy: string | null = null
 
-const saveClickedElement = (event: MouseEvent) => {
-  const target = event.target as Element
-  const targetParentChildren = Array.from(target.parentElement.children)
-  const targetIndex = targetParentChildren.findIndex((e) => e === target)
-  const g = targetParentChildren[targetIndex - 1]
-  if (g.tagName.toLowerCase() === "g") {
-    const gAriaLabel = g.ariaLabel
-    if (gAriaLabel) {
-      textToCopy = gAriaLabel
-    }
+
+
+const createCopyButton = (node: Element, textToCopy: string) => {
+  const { left, top, width, height } = node.getBoundingClientRect()
+  const button = document.createElement("button")
+  button.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
+  })
+  button.style.position = "absolute"
+  button.style.top = `${top}px`
+  button.style.left = `${left}px`
+  button.style.width = `${width}px`
+  button.style.height = `${height}px`
+  button.style.zIndex = "10000"
+  const style = () => {
+    button.style.background = "#0002"
+    button.style.border = "solid 1px #f00"
   }
+  const styleHover = () => {
+    button.style.background = "#0004"
+  }
+  style()
+  button.addEventListener("mouseenter", styleHover)
+  button.addEventListener("mouseleave", style)
+  document.body.appendChild(button)
 }
 
 const addListenersToExistingElements = () => {
-  document.querySelectorAll<Element>("path").forEach((element) => {
-    element.addEventListener("contextmenu", saveClickedElement)
+  Array.from(document.body.children).forEach((node) => {
+    if (node instanceof Element) {
+      if (node.tagName.toLowerCase() === "button") {
+        node.remove()
+      }
+    }
+  })
+  document.querySelectorAll<Element>("g").forEach((node) => {
+    if (node instanceof Element && node.tagName.toLowerCase() === "g") {
+      if (node.getAttribute("aria-label") === null) return
+      const textToCopy = node.getAttribute("aria-label")
+      createCopyButton(node, textToCopy)
+    }
   })
 }
 
 const observeDynamicGElements = () => {
   const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
-          if (
-            node instanceof Element &&
-            node.tagName.toLowerCase() === "path"
-          ) {
-            node.addEventListener("contextmenu", saveClickedElement)
-          } else if (node instanceof Element) {
-            node.querySelectorAll("path").forEach((element) => {
-              element.addEventListener("contextmenu", saveClickedElement)
-            })
-          }
-        })
+    const targetNodes: Element[] = mutations
+      .filter((mutation) => mutation.type === "childList")
+      .flatMap((mutation) =>
+        Array.from(mutation.addedNodes)
+          .filter((node) => node instanceof Element)
+          .map((node) =>
+            node.tagName.toLowerCase() === "g"
+              ? node
+              : Array.from(node.querySelectorAll("g"))
+          )
+          .flat()
+          .filter(
+            (node) =>
+              node instanceof Element &&
+              node.getAttribute("aria-label") !== null
+          )
+      )
+    if (targetNodes.length === 0) return
+    Array.from(document.body.children).forEach((node) => {
+      if (node instanceof Element) {
+        if (node.tagName.toLowerCase() === "button") {
+          node.remove()
+        }
       }
+    })
+    targetNodes.forEach((node) => {
+      const textToCopy = node.getAttribute("aria-label")
+      createCopyButton(node, textToCopy)
     })
   })
 
@@ -50,28 +87,9 @@ const observeDynamicGElements = () => {
     childList: true,
     subtree: true
   })
-
-  console.log("MutationObserver を開始しました")
 }
-
-chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-  if (message.name === "copyToClipboard") {
-    if (textToCopy) {
-      navigator.clipboard
-        .writeText(textToCopy)
-        .then(() => {
-          console.log("クリップボードにコピーしました: \n", textToCopy)
-        })
-        .catch((err) => {
-          console.error("クリップボードにコピーできませんでした: \n", err)
-        })
-    } else {
-      alert("クリップボードにコピーする要素が見つかりませんでした")
-    }
-    sendResponse(textToCopy)
-  }
-  return true
-})
 
 addListenersToExistingElements()
 observeDynamicGElements()
+
+window.addEventListener("resize", addListenersToExistingElements)
