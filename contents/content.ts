@@ -23,12 +23,6 @@ if (isInIframe) {
     deleteButton.addEventListener("click", () => {
       copyButton.remove()
     })
-    deleteButton.addEventListener("mouseenter", () => {
-      deleteButton.style.backgroundColor = "#fff6"
-    })
-    deleteButton.addEventListener("mouseleave", () => {
-      deleteButton.style.backgroundColor = "#0000"
-    })
 
     const copyButton = document.createElement("button")
     copyButton.addEventListener("click", () => {
