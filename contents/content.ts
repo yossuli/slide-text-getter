@@ -7,7 +7,7 @@ export const config: PlasmoCSConfig = {
 
 const createCopyButton = (node: Element, textToCopy: string) => {
   const { left, top, width, height } = node.getBoundingClientRect()
-  const copyButton = document.createElement("div")
+  const copyButton = document.createElement("button")
   copyButton.addEventListener("click", () => {
     chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
   })
