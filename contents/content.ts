@@ -5,32 +5,31 @@ export const config: PlasmoCSConfig = {
   all_frames: true
 }
 
-
-
-
 const createCopyButton = (node: Element, textToCopy: string) => {
   const { left, top, width, height } = node.getBoundingClientRect()
-  const button = document.createElement("button")
-  button.addEventListener("click", () => {
+  const copyButton = document.createElement("div")
+  copyButton.addEventListener("click", () => {
     chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
   })
-  button.style.position = "absolute"
-  button.style.top = `${top}px`
-  button.style.left = `${left}px`
-  button.style.width = `${width}px`
-  button.style.height = `${height}px`
-  button.style.zIndex = "10000"
+
   const style = () => {
-    button.style.background = "#0002"
-    button.style.border = "solid 1px #f00"
+    copyButton.style.position = "absolute"
+    copyButton.style.top = `${top}px`
+    copyButton.style.left = `${left}px`
+    copyButton.style.width = `${width}px`
+    copyButton.style.height = `${height}px`
+    copyButton.style.zIndex = "10000"
+    copyButton.style.background = "#0002"
+    copyButton.style.border = "solid 1px #f00"
   }
   const styleHover = () => {
-    button.style.background = "#0004"
+    copyButton.style.background = "#0004"
+    copyButton.style.border = "solid 1px #0f0"
   }
   style()
-  button.addEventListener("mouseenter", styleHover)
-  button.addEventListener("mouseleave", style)
-  document.body.appendChild(button)
+  copyButton.addEventListener("mouseenter", styleHover)
+  copyButton.addEventListener("mouseleave", style)
+  document.body.appendChild(copyButton)
 }
 
 const addListenersToExistingElements = () => {
@@ -44,6 +43,7 @@ const addListenersToExistingElements = () => {
   document.querySelectorAll<Element>("g").forEach((node) => {
     if (node instanceof Element && node.tagName.toLowerCase() === "g") {
       if (node.getAttribute("aria-label") === null) return
+      if (node.getAttribute("aria-label") === "") return
       const textToCopy = node.getAttribute("aria-label")
       createCopyButton(node, textToCopy)
     }
