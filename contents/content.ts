@@ -30,6 +30,21 @@ const createCopyButton = (node: Element, textToCopy: string) => {
   copyButton.addEventListener("mouseenter", styleHover)
   copyButton.addEventListener("mouseleave", style)
   document.body.appendChild(copyButton)
+
+  const deleteButton = document.createElement("button")
+  deleteButton.textContent = "delete"
+  deleteButton.style.backgroundColor = "#0000"
+  deleteButton.addEventListener("click", () => {
+    copyButton.remove()
+  })
+  deleteButton.addEventListener("mouseenter", () => {
+    deleteButton.style.backgroundColor = "#fff6"
+  })
+  deleteButton.addEventListener("mouseleave", () => {
+    deleteButton.style.backgroundColor = "#0000"
+  })
+
+  copyButton.appendChild(deleteButton)
 }
 
 const addListenersToExistingElements = () => {
