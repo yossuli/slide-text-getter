@@ -7,29 +7,6 @@ export const config: PlasmoCSConfig = {
 
 const createCopyButton = (node: Element, textToCopy: string) => {
   const { left, top, width, height } = node.getBoundingClientRect()
-  const copyButton = document.createElement("button")
-  copyButton.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
-  })
-
-  const style = () => {
-    copyButton.style.position = "absolute"
-    copyButton.style.top = `${top}px`
-    copyButton.style.left = `${left}px`
-    copyButton.style.width = `${width}px`
-    copyButton.style.height = `${height}px`
-    copyButton.style.zIndex = "10000"
-    copyButton.style.background = "#0002"
-    copyButton.style.border = "solid 1px #f00"
-  }
-  const styleHover = () => {
-    copyButton.style.background = "#0004"
-    copyButton.style.border = "solid 1px #0f0"
-  }
-  style()
-  copyButton.addEventListener("mouseenter", styleHover)
-  copyButton.addEventListener("mouseleave", style)
-  document.body.appendChild(copyButton)
 
   const deleteButton = document.createElement("button")
   deleteButton.textContent = "delete"
@@ -44,6 +21,34 @@ const createCopyButton = (node: Element, textToCopy: string) => {
     deleteButton.style.backgroundColor = "#0000"
   })
 
+  const copyButton = document.createElement("button")
+  copyButton.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
+  })
+
+  const style = () => {
+    copyButton.style.position = "absolute"
+    copyButton.style.top = `${top}px`
+    copyButton.style.left = `${left}px`
+    copyButton.style.width = `${width}px`
+    copyButton.style.height = `${height}px`
+    copyButton.style.zIndex = "10000"
+    copyButton.style.background = "#0002"
+    copyButton.style.border = "solid 1px #f00"
+    copyButton.style.display = "flex"
+    copyButton.style.padding = "0"
+    deleteButton.style.display = "none"
+  }
+  const styleHover = () => {
+    copyButton.style.background = "#0004"
+    copyButton.style.border = "solid 1px #0f0"
+    deleteButton.style.display = "block"
+  }
+  style()
+  copyButton.addEventListener("mouseenter", styleHover)
+  copyButton.addEventListener("mouseleave", style)
+
+  document.body.appendChild(copyButton)
   copyButton.appendChild(deleteButton)
 }
 
