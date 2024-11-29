@@ -67,6 +67,7 @@ if (isInIframe) {
       if (node instanceof Element && node.tagName.toLowerCase() === "g") {
         if (node.getAttribute("aria-label") === null) return
         if (node.getAttribute("aria-label") === "") return
+        if (node.getAttribute("aria-hidden") === "true") return
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
       }
@@ -75,7 +76,7 @@ if (isInIframe) {
 
   const observeDynamicGElements = () => {
     const observer = new MutationObserver((mutations) => {
-      const targetNodes: Element[] = mutations
+      const targetNodes1: Element[] = mutations
         .filter((mutation) => mutation.type === "childList")
         .flatMap((mutation) =>
           Array.from(mutation.addedNodes)
@@ -89,17 +90,33 @@ if (isInIframe) {
             .filter(
               (node) =>
                 node instanceof Element &&
-                node.getAttribute("aria-label") !== null
+                node.getAttribute("aria-label") !== null &&
+                node.getAttribute("aria-label") !== "" &&
+                node.getAttribute("aria-hidden") !== "true"
             )
         )
-      if (targetNodes.length === 0) return
-      Array.from(document.body.children).forEach((node) => {
-        if (node instanceof Element) {
-          if (node.tagName.toLowerCase() === "button") {
-            node.remove()
+      const targetNodes2: Element[] = mutations
+        .filter((mutation) => mutation.type === "attributes")
+        .filter(
+          (mutation) =>
+            mutation.target instanceof Element &&
+            mutation.target.tagName.toLowerCase() === "g" &&
+            mutation.target.getAttribute("aria-label") !== null &&
+            mutation.target.getAttribute("aria-label") !== "" &&
+            mutation.target.getAttribute("aria-hidden") !== "true"
+        )
+        .map((mutation) => mutation.target as Element)
+      const targetNodes = [...targetNodes1, ...targetNodes2]
+      if (targetNodes1.length > 0) {
+        Array.from(document.body.children).forEach((node) => {
+          if (node instanceof Element) {
+            if (node.tagName.toLowerCase() === "button") {
+              node.remove()
+            }
           }
-        }
-      })
+        })
+      }
+      if (targetNodes.length === 0) return
       targetNodes.forEach((node) => {
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
@@ -108,7 +125,8 @@ if (isInIframe) {
 
     observer.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
+      attributes: true
     })
   }
 
