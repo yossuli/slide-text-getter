@@ -16,6 +16,8 @@ const isInIframe = (() => {
 if (isInIframe) {
   const createCopyButton = (node: Element, textToCopy: string) => {
     const { left, top, width, height } = node.getBoundingClientRect()
+    const id = node.getAttribute("aria-label")
+    if (document.getElementById(id)) return
 
     const deleteButton = document.createElement("button")
     deleteButton.textContent = "delete"
@@ -25,6 +27,7 @@ if (isInIframe) {
     })
 
     const copyButton = document.createElement("button")
+    copyButton.id = id
     copyButton.addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
     })
@@ -56,13 +59,6 @@ if (isInIframe) {
   }
 
   const addListenersToExistingElements = () => {
-    Array.from(document.body.children).forEach((node) => {
-      if (node instanceof Element) {
-        if (node.tagName.toLowerCase() === "button") {
-          node.remove()
-        }
-      }
-    })
     document.querySelectorAll<Element>("g").forEach((node) => {
       if (node instanceof Element && node.tagName.toLowerCase() === "g") {
         if (node.getAttribute("aria-label") === null) return
@@ -76,7 +72,7 @@ if (isInIframe) {
 
   const observeDynamicGElements = () => {
     const observer = new MutationObserver((mutations) => {
-      const targetNodes1: Element[] = mutations
+      const addedNodes: Element[] = mutations
         .filter((mutation) => mutation.type === "childList")
         .flatMap((mutation) =>
           Array.from(mutation.addedNodes)
@@ -95,7 +91,7 @@ if (isInIframe) {
                 node.getAttribute("aria-hidden") !== "true"
             )
         )
-      const targetNodes2: Element[] = mutations
+      const appearedNodes: Element[] = mutations
         .filter((mutation) => mutation.type === "attributes")
         .filter(
           (mutation) =>
@@ -106,20 +102,47 @@ if (isInIframe) {
             mutation.target.getAttribute("aria-hidden") !== "true"
         )
         .map((mutation) => mutation.target as Element)
-      const targetNodes = [...targetNodes1, ...targetNodes2]
-      if (targetNodes1.length > 0) {
-        Array.from(document.body.children).forEach((node) => {
-          if (node instanceof Element) {
-            if (node.tagName.toLowerCase() === "button") {
-              node.remove()
-            }
-          }
-        })
-      }
-      if (targetNodes.length === 0) return
-      targetNodes.forEach((node) => {
+      const deletedNodes = mutations
+        .filter((mutation) => mutation.type === "childList")
+        .flatMap((mutation) =>
+          Array.from(mutation.removedNodes)
+            .filter((node) => node instanceof Element)
+            .map((node) =>
+              node.tagName.toLowerCase() === "g"
+                ? node
+                : Array.from(node.querySelectorAll("g"))
+            )
+            .flat()
+            .filter(
+              (node) =>
+                node instanceof Element &&
+                node.getAttribute("aria-label") !== null &&
+                node.getAttribute("aria-label") !== ""
+            )
+        )
+      const disappearedNodes = mutations
+        .filter((mutation) => mutation.type === "attributes")
+        .filter(
+          (mutation) =>
+            mutation.target instanceof Element &&
+            mutation.target.tagName.toLowerCase() === "g" &&
+            mutation.target.getAttribute("aria-label") !== null &&
+            mutation.target.getAttribute("aria-label") !== "" &&
+            mutation.target.getAttribute("aria-hidden") === "true"
+        )
+        .map((mutation) => mutation.target as Element)
+      const addTargetNodes = [...addedNodes, ...appearedNodes]
+      addTargetNodes.forEach((node) => {
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
+      })
+      const deleteTargetNodes = [...deletedNodes, ...disappearedNodes]
+      deleteTargetNodes.forEach((node) => {
+        const id = node.getAttribute("aria-label")
+        const deleteButton = document.getElementById(id)
+        if (deleteButton) {
+          deleteButton.remove()
+        }
       })
     })
 
