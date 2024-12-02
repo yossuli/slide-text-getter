@@ -1,5 +1,8 @@
 import type { PlasmoCSConfig } from "plasmo"
 
+import { handleChildList } from "~utils/handleChildList"
+import { isTargetElement } from "~utils/isTargetElement"
+
 export const config: PlasmoCSConfig = {
   matches: ["https://docs.google.com/presentation/d/*"],
   all_frames: true
@@ -60,9 +63,7 @@ if (isInIframe) {
 
   const addListenersToExistingElements = () => {
     document.querySelectorAll<Element>("g").forEach((node) => {
-      if (node instanceof Element && node.tagName.toLowerCase() === "g") {
-        if (node.getAttribute("aria-label") === null) return
-        if (node.getAttribute("aria-label") === "") return
+      if (node instanceof Element && isTargetElement(node)) {
         if (node.getAttribute("aria-hidden") === "true") return
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
@@ -75,67 +76,36 @@ if (isInIframe) {
       const addedNodes: Element[] = mutations
         .filter((mutation) => mutation.type === "childList")
         .flatMap((mutation) =>
-          Array.from(mutation.addedNodes)
-            .filter((node) => node instanceof Element)
-            .map((node) =>
-              node.tagName.toLowerCase() === "g"
-                ? node
-                : Array.from(node.querySelectorAll("g"))
-            )
+          handleChildList(mutation.addedNodes)
             .flat()
-            .filter(
-              (node) =>
-                node instanceof Element &&
-                node.getAttribute("aria-label") !== null &&
-                node.getAttribute("aria-label") !== "" &&
-                node.getAttribute("aria-hidden") !== "true"
-            )
+            .filter(isTargetElement)
+            .filter((node) => node.getAttribute("aria-hidden") !== "true")
         )
+
       const appearedNodes: Element[] = mutations
         .filter((mutation) => mutation.type === "attributes")
-        .filter(
-          (mutation) =>
-            mutation.target instanceof Element &&
-            mutation.target.tagName.toLowerCase() === "g" &&
-            mutation.target.getAttribute("aria-label") !== null &&
-            mutation.target.getAttribute("aria-label") !== "" &&
-            mutation.target.getAttribute("aria-hidden") !== "true"
-        )
-        .map((mutation) => mutation.target as Element)
+        .map((mutation) => mutation.target)
+        .filter((node) => node instanceof Element)
+        .filter(isTargetElement)
+        .filter((node) => node.getAttribute("aria-hidden") !== "true")
+
       const deletedNodes = mutations
         .filter((mutation) => mutation.type === "childList")
         .flatMap((mutation) =>
-          Array.from(mutation.removedNodes)
-            .filter((node) => node instanceof Element)
-            .map((node) =>
-              node.tagName.toLowerCase() === "g"
-                ? node
-                : Array.from(node.querySelectorAll("g"))
-            )
-            .flat()
-            .filter(
-              (node) =>
-                node instanceof Element &&
-                node.getAttribute("aria-label") !== null &&
-                node.getAttribute("aria-label") !== ""
-            )
+          handleChildList(mutation.removedNodes).flat().filter(isTargetElement)
         )
       const disappearedNodes = mutations
         .filter((mutation) => mutation.type === "attributes")
-        .filter(
-          (mutation) =>
-            mutation.target instanceof Element &&
-            mutation.target.tagName.toLowerCase() === "g" &&
-            mutation.target.getAttribute("aria-label") !== null &&
-            mutation.target.getAttribute("aria-label") !== "" &&
-            mutation.target.getAttribute("aria-hidden") === "true"
-        )
-        .map((mutation) => mutation.target as Element)
+        .filter((node) => node instanceof Element)
+        .filter(isTargetElement)
+        .filter((node) => node.getAttribute("aria-hidden") === "true")
+
       const addTargetNodes = [...addedNodes, ...appearedNodes]
       addTargetNodes.forEach((node) => {
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
       })
+
       const deleteTargetNodes = [...deletedNodes, ...disappearedNodes]
       deleteTargetNodes.forEach((node) => {
         const id = node.getAttribute("aria-label")
