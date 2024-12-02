@@ -100,12 +100,6 @@ if (isInIframe) {
         .filter(isTargetElement)
         .filter((node) => node.getAttribute("aria-hidden") === "true")
 
-      const addTargetNodes = [...addedNodes, ...appearedNodes]
-      addTargetNodes.forEach((node) => {
-        const textToCopy = node.getAttribute("aria-label")
-        createCopyButton(node, textToCopy)
-      })
-
       const deleteTargetNodes = [...deletedNodes, ...disappearedNodes]
       deleteTargetNodes.forEach((node) => {
         const id = node.getAttribute("aria-label")
@@ -113,6 +107,12 @@ if (isInIframe) {
         if (deleteButton) {
           deleteButton.remove()
         }
+      })
+
+      const addTargetNodes = [...addedNodes, ...appearedNodes]
+      addTargetNodes.forEach((node) => {
+        const textToCopy = node.getAttribute("aria-label")
+        createCopyButton(node, textToCopy)
       })
     })
 
