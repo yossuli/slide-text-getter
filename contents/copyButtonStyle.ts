@@ -19,12 +19,15 @@ export const style = (
   copyButton.style.display = "flex"
   copyButton.style.padding = "0"
   deleteButton.style.display = "none"
+  deleteButton.style.marginRight = "1rem"
 }
+
 export const styleHover = (
   copyButton: HTMLElement,
   deleteButton: HTMLElement
 ) => {
   copyButton.style.background = "#0004"
   copyButton.style.border = "solid 1px #0f0"
+  copyButton.style.minWidth = "fit-content"
   deleteButton.style.display = "block"
 }
