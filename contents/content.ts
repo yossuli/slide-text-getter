@@ -91,15 +91,20 @@ if (isInIframe) {
         .map((mutation) => mutation.target)
         .filter((node) => node instanceof Element)
 
-      const findAppearedTargetNodes = (node: Element[]) =>
-        node.filter(isTargetElement).filter(isAppear)
+      const appearedTargetNodes: Element[] = appearedNodes
+        .filter(isTargetElement)
+        .filter(isAppear)
 
-      const appearedTargetNodes: Element[] = appearedNodes.flatMap((node) => [
-        ...findAppearedTargetNodes([node]),
-        ...findAppearedTargetNodes(
+      const appearedParentNodes = appearedNodes
+        .filter(isAppear)
+        .flatMap((node) =>
           Array.from(node.querySelectorAll("g"))
-        ).filter((node) => !addedNodesDisappeared.some((n) => n.contains(node)))
-      ])
+            .filter(isTargetElement)
+            .filter(isAppear)
+            .filter(
+              (node) => !addedNodesDisappeared.some((e) => e.contains(node))
+            )
+        )
 
       const deletedNodes = mutations
         .filter((mutation) => mutation.type === "childList")
@@ -107,41 +112,38 @@ if (isInIframe) {
 
       const deletedTargetNodes = deletedNodes.filter(isTargetElement)
 
-      const deletedParentNodes = deletedNodes.filter((node) =>
-        Array.from(node.querySelectorAll("g"))
-          .map((elm) => elm.getAttribute("aria-label"))
-          .some(Boolean)
-      )
-
       const disappearedNodes = mutations
         .filter((mutation) => mutation.type === "attributes")
         .map((mutation) => mutation.target)
         .filter((node) => node instanceof Element)
 
-      const findDisappearedTargetNodes = (node: Element[]) =>
-        node.filter(isTargetElement).filter(isDisappear)
-      const disappearedTargetNodes = disappearedNodes.flatMap((node) => [
-        ...findDisappearedTargetNodes([node]),
-        ...findDisappearedTargetNodes(
-          Array.from(node.querySelectorAll("g"))
-        ).filter((node) => addedNodesDisappeared.some((n) => n.contains(node)))
-      ])
+      const disappearedTargetNodes = disappearedNodes
+        .filter(isTargetElement)
+        .filter(isDisappear)
 
-      const deleteTargetNodes = [
+      const disappearedParentNodes = disappearedNodes.flatMap((node) =>
+        Array.from(node.querySelectorAll("g"))
+      )
+
+      ;[
         ...deletedTargetNodes,
-        ...deletedParentNodes,
-        ...disappearedTargetNodes
-      ]
-      deleteTargetNodes.forEach((node) => {
+        // ...disappearedTargetNodes,
+        ...disappearedParentNodes
+      ].forEach((node) => {
         const id = generateId(node)
         const deleteButton = document.getElementById(id)
+        // console.log(deleteButton)
         if (deleteButton) {
           deleteButton.remove()
         }
       })
 
-      const addTargetNodes = [...addedTargetNodes, ...appearedTargetNodes]
-      addTargetNodes.forEach((node) => {
+      //
+      ;[
+        // ...addedTargetNodes,
+        // ...appearedTargetNodes,
+        ...appearedParentNodes
+      ].forEach((node) => {
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
       })
