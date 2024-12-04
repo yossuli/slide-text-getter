@@ -81,19 +81,11 @@ if (isInIframe) {
         .flatMap((mutation) => handleChildList(mutation.addedNodes).flat())
 
       const addedNodesDisappeared = addedNodes.filter(isDisappear)
-      const addedTargetNodes: Element[] = addedNodes
-        .filter(isTargetElement)
-        .filter(isAppear)
-        .filter((node) => !addedNodesDisappeared.some((n) => n.contains(node)))
 
       const appearedNodes: Element[] = mutations
         .filter((mutation) => mutation.type === "attributes")
         .map((mutation) => mutation.target)
         .filter((node) => node instanceof Element)
-
-      const appearedTargetNodes: Element[] = appearedNodes
-        .filter(isTargetElement)
-        .filter(isAppear)
 
       const appearedParentNodes = appearedNodes
         .filter(isAppear)
@@ -117,33 +109,19 @@ if (isInIframe) {
         .map((mutation) => mutation.target)
         .filter((node) => node instanceof Element)
 
-      const disappearedTargetNodes = disappearedNodes
-        .filter(isTargetElement)
-        .filter(isDisappear)
-
       const disappearedParentNodes = disappearedNodes.flatMap((node) =>
         Array.from(node.querySelectorAll("g"))
       )
 
-      ;[
-        ...deletedTargetNodes,
-        // ...disappearedTargetNodes,
-        ...disappearedParentNodes
-      ].forEach((node) => {
+      ;[...deletedTargetNodes, ...disappearedParentNodes].forEach((node) => {
         const id = generateId(node)
         const deleteButton = document.getElementById(id)
-        // console.log(deleteButton)
         if (deleteButton) {
           deleteButton.remove()
         }
       })
 
-      //
-      ;[
-        // ...addedTargetNodes,
-        // ...appearedTargetNodes,
-        ...appearedParentNodes
-      ].forEach((node) => {
+      appearedParentNodes.forEach((node) => {
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
       })
