@@ -1,5 +1,6 @@
 import type { PlasmoCSConfig } from "plasmo"
 
+import { generateId } from "~utils/generateId"
 import { handleChildList } from "~utils/handleChildList"
 import { inspect } from "~utils/inspect"
 import { isTargetElement } from "~utils/isTargetElement"
@@ -31,7 +32,7 @@ const isDisappear = (node: Element) =>
 if (isInIframe) {
   const createCopyButton = (node: Element, textToCopy: string) => {
     const rect = node.getBoundingClientRect()
-    const id = node.getAttribute("aria-label")
+    const id = generateId(node)
     const currentCopyButton = document.getElementById(id)
     if (currentCopyButton) {
       style(currentCopyButton, currentCopyButton.querySelector("button"), rect)
@@ -132,7 +133,7 @@ if (isInIframe) {
         ...disappearedTargetNodes
       ]
       deleteTargetNodes.forEach((node) => {
-        const id = node.getAttribute("aria-label")
+        const id = generateId(node)
         const deleteButton = document.getElementById(id)
         if (deleteButton) {
           deleteButton.remove()
