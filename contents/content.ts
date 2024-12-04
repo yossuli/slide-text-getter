@@ -1,7 +1,11 @@
 import type { PlasmoCSConfig } from "plasmo"
 
 import { handleChildList } from "~utils/handleChildList"
+import { inspect } from "~utils/inspect"
 import { isTargetElement } from "~utils/isTargetElement"
+import { parseStyle } from "~utils/parseStyle"
+
+import { style, styleHover } from "./copyButtonStyle"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://docs.google.com/presentation/d/*"],
@@ -16,11 +20,23 @@ const isInIframe = (() => {
   }
 })()
 
+const isAppear = (node: Element) =>
+  node.getAttribute("aria-hidden") !== "true" &&
+  parseStyle(node.getAttribute("style") ?? "")["opacity"] !== "0"
+
+const isDisappear = (node: Element) =>
+  node.getAttribute("aria-hidden") === "true" ||
+  parseStyle(node.getAttribute("style") ?? "")["opacity"] === "0"
+
 if (isInIframe) {
   const createCopyButton = (node: Element, textToCopy: string) => {
-    const { left, top, width, height } = node.getBoundingClientRect()
+    const rect = node.getBoundingClientRect()
     const id = node.getAttribute("aria-label")
-    if (document.getElementById(id)) return
+    const currentCopyButton = document.getElementById(id)
+    if (currentCopyButton) {
+      style(currentCopyButton, currentCopyButton.querySelector("button"), rect)
+      return
+    }
 
     const deleteButton = document.createElement("button")
     deleteButton.textContent = "delete"
@@ -35,27 +51,13 @@ if (isInIframe) {
       chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
     })
 
-    const style = () => {
-      copyButton.style.position = "absolute"
-      copyButton.style.top = `${top}px`
-      copyButton.style.left = `${left}px`
-      copyButton.style.width = `${width}px`
-      copyButton.style.height = `${height}px`
-      copyButton.style.zIndex = "10000"
-      copyButton.style.background = "#0002"
-      copyButton.style.border = "solid 1px #f00"
-      copyButton.style.display = "flex"
-      copyButton.style.padding = "0"
-      deleteButton.style.display = "none"
-    }
-    const styleHover = () => {
-      copyButton.style.background = "#0004"
-      copyButton.style.border = "solid 1px #0f0"
-      deleteButton.style.display = "block"
-    }
-    style()
-    copyButton.addEventListener("mouseenter", styleHover)
-    copyButton.addEventListener("mouseleave", style)
+    style(copyButton, deleteButton, rect)
+    copyButton.addEventListener("mouseenter", () =>
+      styleHover(copyButton, deleteButton)
+    )
+    copyButton.addEventListener("mouseleave", () =>
+      style(copyButton, deleteButton, rect)
+    )
 
     document.body.appendChild(copyButton)
     copyButton.appendChild(deleteButton)
@@ -64,7 +66,7 @@ if (isInIframe) {
   const addListenersToExistingElements = () => {
     document.querySelectorAll<Element>("g").forEach((node) => {
       if (node instanceof Element && isTargetElement(node)) {
-        if (node.getAttribute("aria-hidden") === "true") return
+        if (isDisappear(node)) return
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
       }
@@ -75,32 +77,60 @@ if (isInIframe) {
     const observer = new MutationObserver((mutations) => {
       const addedNodes: Element[] = mutations
         .filter((mutation) => mutation.type === "childList")
-        .flatMap((mutation) =>
-          handleChildList(mutation.addedNodes)
-            .flat()
-            .filter(isTargetElement)
-            .filter((node) => node.getAttribute("aria-hidden") !== "true")
-        )
+        .flatMap((mutation) => handleChildList(mutation.addedNodes).flat())
+
+      const addedNodesDisappeared = addedNodes.filter(isDisappear)
+      const addedTargetNodes: Element[] = addedNodes
+        .filter(isTargetElement)
+        .filter(isAppear)
+        .filter((node) => !addedNodesDisappeared.some((n) => n.contains(node)))
 
       const appearedNodes: Element[] = mutations
         .filter((mutation) => mutation.type === "attributes")
         .map((mutation) => mutation.target)
         .filter((node) => node instanceof Element)
-        .filter(isTargetElement)
-        .filter((node) => node.getAttribute("aria-hidden") !== "true")
+
+      const findAppearedTargetNodes = (node: Element[]) =>
+        node.filter(isTargetElement).filter(isAppear)
+
+      const appearedTargetNodes: Element[] = appearedNodes.flatMap((node) => [
+        ...findAppearedTargetNodes([node]),
+        ...findAppearedTargetNodes(
+          Array.from(node.querySelectorAll("g"))
+        ).filter((node) => !addedNodesDisappeared.some((n) => n.contains(node)))
+      ])
 
       const deletedNodes = mutations
         .filter((mutation) => mutation.type === "childList")
-        .flatMap((mutation) =>
-          handleChildList(mutation.removedNodes).flat().filter(isTargetElement)
-        )
+        .flatMap((mutation) => handleChildList(mutation.removedNodes).flat())
+
+      const deletedTargetNodes = deletedNodes.filter(isTargetElement)
+
+      const deletedParentNodes = deletedNodes.filter((node) =>
+        Array.from(node.querySelectorAll("g"))
+          .map((elm) => elm.getAttribute("aria-label"))
+          .some(Boolean)
+      )
+
       const disappearedNodes = mutations
         .filter((mutation) => mutation.type === "attributes")
+        .map((mutation) => mutation.target)
         .filter((node) => node instanceof Element)
-        .filter(isTargetElement)
-        .filter((node) => node.getAttribute("aria-hidden") === "true")
 
-      const deleteTargetNodes = [...deletedNodes, ...disappearedNodes]
+      const findDisappearedTargetNodes = (node: Element[]) =>
+        node.filter(isTargetElement).filter(isDisappear)
+      const disappearedTargetNodes = disappearedNodes.flatMap((node) => [
+        ...findDisappearedTargetNodes([node]),
+        ...findDisappearedTargetNodes(
+          Array.from(node.querySelectorAll("g"))
+        ).filter((node) => addedNodesDisappeared.some((n) => n.contains(node)))
+      ])
+
+      const deleteTargetNodes = [
+        ...deletedTargetNodes,
+        ...deletedParentNodes,
+        ...disappearedTargetNodes
+      ]
       deleteTargetNodes.forEach((node) => {
         const id = node.getAttribute("aria-label")
         const deleteButton = document.getElementById(id)
@@ -109,7 +139,7 @@ if (isInIframe) {
         }
       })
 
-      const addTargetNodes = [...addedNodes, ...appearedNodes]
+      const addTargetNodes = [...addedTargetNodes, ...appearedTargetNodes]
       addTargetNodes.forEach((node) => {
         const textToCopy = node.getAttribute("aria-label")
         createCopyButton(node, textToCopy)
