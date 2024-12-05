@@ -40,7 +40,7 @@ if (isInIframe) {
     }
 
     const deleteButton = document.createElement("button")
-    deleteButton.textContent = "delete"
+    deleteButton.textContent = "×"
     deleteButton.style.backgroundColor = "#0000"
     deleteButton.addEventListener("click", () => {
       copyButton.remove()

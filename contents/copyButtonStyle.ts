@@ -19,7 +19,14 @@ export const style = (
   copyButton.style.display = "flex"
   copyButton.style.padding = "0"
   deleteButton.style.display = "none"
+  deleteButton.style.margin = "0.25rem"
   deleteButton.style.marginRight = "1rem"
+  deleteButton.style.borderRadius = "50%"
+  deleteButton.style.aspectRatio = "1"
+  deleteButton.style.backgroundColor = "#000"
+  deleteButton.style.border = "none"
+  deleteButton.style.color = "#fff"
+  deleteButton.style.cursor = "pointer"
 }
 
 export const styleHover = (
