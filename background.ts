@@ -24,9 +24,19 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.runtime.onMessage.addListener(async (message) => {
   if (message.type === "FROM_IFRAME") {
+    console.log("FROM_IFRAME")
     const res = await sendToContentScript({
       name: "copyToClipboardFromIframe",
       body: message.data
+    })
+  }
+})
+
+chrome.runtime.onMessage.addListener(async (message) => {
+  if (message.type === "CHANGE_SETTINGS_FROM_POPUP") {
+    console.log("storage event")
+    await sendToContentScript({
+      name: "CHANGE_SETTINGS_FROM_BACKGROUND"
     })
   }
 })
