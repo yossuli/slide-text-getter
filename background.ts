@@ -8,19 +8,17 @@ import { sendToContentScript } from "@plasmohq/messaging"
 //   })
 // })
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId === "copy-to-clipboard") {
-    const res = await sendToContentScript({
-      name: "copyToClipboard"
-    })
-    console.log(res)
-
-    await sendToContentScript({
-      name: "copyToEditSpace",
-      body: res
-    })
-  }
-})
+// chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+//   if (info.menuItemId === "copy-to-clipboard") {
+//     const res = await sendToContentScript({
+//       name: "copyToClipboard"
+//     })
+//     await sendToContentScript({
+//       name: "copyToEditSpace",
+//       body: res
+//     })
+//   }
+// })
 
 chrome.runtime.onMessage.addListener(async (message) => {
   if (message.type === "FROM_IFRAME") {
