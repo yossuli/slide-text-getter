@@ -21,10 +21,9 @@ import { sendToContentScript } from "@plasmohq/messaging"
 // })
 
 chrome.runtime.onMessage.addListener(async (message) => {
-  if (message.type === "FROM_IFRAME") {
-    console.log("FROM_IFRAME")
+  if (message.type === "COPY_TO_CLIPBOARD") {
     const res = await sendToContentScript({
-      name: "copyToClipboardFromIframe",
+      name: "COPY_TO_CLIPBOARD_FROM_BACKGROUND",
       body: message.data
     })
   }
@@ -32,7 +31,6 @@ chrome.runtime.onMessage.addListener(async (message) => {
 
 chrome.runtime.onMessage.addListener(async (message) => {
   if (message.type === "CHANGE_SETTINGS_FROM_POPUP") {
-    console.log("storage event")
     await sendToContentScript({
       name: "CHANGE_SETTINGS_FROM_BACKGROUND"
     })

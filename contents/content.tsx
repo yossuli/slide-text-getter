@@ -15,7 +15,7 @@ const EditPopup = () => {
 
   useEffect(() => {
     const messageListener = (message) => {
-      if (message.name === "copyToClipboardFromIframe") {
+      if (message.name === "COPY_TO_CLIPBOARD_FROM_BACKGROUND") {
         setTextToEdit(message.body)
       }
     }

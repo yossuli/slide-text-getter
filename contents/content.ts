@@ -47,7 +47,7 @@ const createCopyButton = (node: Element, textToCopy: string) => {
   const copyButton = document.createElement("button")
   copyButton.id = id
   copyButton.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ type: "FROM_IFRAME", data: textToCopy })
+    chrome.runtime.sendMessage({ type: "COPY_TO_CLIPBOARD", data: textToCopy })
   })
 
   style(copyButton, deleteButton, rect)
