@@ -2,40 +2,7 @@ import React, { useEffect, useState } from "react"
 
 import { useStorage } from "@plasmohq/storage/hook"
 
-const SlideButton = ({
-  checked,
-  htmlFor,
-  colors: [color1, color2]
-}: {
-  checked: boolean
-  htmlFor: string
-  colors: [string, string]
-}) => {
-  return (
-    <label htmlFor={htmlFor} style={{ cursor: "pointer", marginLeft: "auto" }}>
-      <div
-        style={{
-          width: "48px",
-          height: "6px",
-          background: checked ? color1 : color2,
-          borderRadius: "3px",
-          transition: "background 0.3s",
-          display: "flex",
-          alignItems: "center"
-        }}>
-        <div
-          style={{
-            width: "18px",
-            height: "18px",
-            background: checked ? color1 : color2,
-            borderRadius: "50%",
-            marginLeft: checked ? "20px" : "4px",
-            transition: "margin-left 0.3s"
-          }}></div>
-      </div>
-    </label>
-  )
-}
+import { ToggleSlideButton } from "~component/ToggleSlideButton"
 
 const IndexPopup = () => {
   const [currentUrl, setCurrentUrl] = useState("")
@@ -85,7 +52,7 @@ const IndexPopup = () => {
           style={{ display: "none" }}
           id="disable"
         />
-        <SlideButton
+        <ToggleSlideButton
           checked={isEnabled}
           htmlFor="disable"
           colors={["#ccc", "#3f51b5"]}
@@ -100,7 +67,7 @@ const IndexPopup = () => {
           style={{ display: "none" }}
           id="until_leave"
         />
-        <SlideButton
+        <ToggleSlideButton
           checked={isEnableUntilExit}
           htmlFor="until_leave"
           colors={["#ccc", "#3f51b5"]}
