@@ -36,5 +36,6 @@ export const styleHover = (
   copyButton.style.background = "#0004"
   copyButton.style.border = "solid 1px #0f0"
   copyButton.style.minWidth = "fit-content"
+  copyButton.style.minHeight = "fit-content"
   deleteButton.style.display = "block"
 }
