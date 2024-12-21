@@ -15,17 +15,15 @@ const observer = new MutationObserver(handleCopyButtons)
 
 const content = (untilExit: boolean) => {
   if (!untilExit) {
-    if (isInIframe) {
-      addListenersToExistingElements()
+    addListenersToExistingElements()
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true
-      })
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true
+    })
 
-      window.addEventListener("resize", addListenersToExistingElements)
-    }
+    window.addEventListener("resize", addListenersToExistingElements)
   } else {
     window.addEventListener("beforeunload", () => {
       chrome.storage.sync.set({ untilExit: true })
@@ -35,14 +33,17 @@ const content = (untilExit: boolean) => {
   }
 }
 chrome.storage.sync.get("untilExit").then((v) => {
-  console.log(v)
-  content(v.untilExit === "true")
+  if (isInIframe) {
+    content(v.untilExit === "true")
+  }
 })
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.name === "CHANGE_SETTINGS_FROM_BACKGROUND") {
     chrome.storage.sync.get("untilExit").then((v) => {
-      content(v.untilExit === "true")
+      if (isInIframe) {
+        content(v.untilExit === "true")
+      }
     })
   }
 })
