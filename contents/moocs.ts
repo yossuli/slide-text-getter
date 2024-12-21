@@ -5,6 +5,8 @@ export const config: PlasmoCSConfig = {
   all_frames: true
 }
 
+const url = window.location.href
+
 chrome.runtime.onMessage.addListener((message) => {
   const textToCopy = message.body
   if (message.name === "COPY_TO_CLIPBOARD_FROM_BACKGROUND") {
@@ -19,22 +21,47 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 })
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.name === "INIT_FROM_BACKGROUND") {
-    chrome.storage.sync.get().then((v) => {
-      const untilExit = JSON.parse(v.untilExit)
-      return untilExit.includes(window.location.href)
+window.addEventListener("load", () => {
+  chrome.storage.sync.get().then(async (v) => {
+    console.log(v)
+    chrome.runtime.sendMessage({
+      type: "INIT",
+      data: JSON.parse(v.untilExit)?.includes(url) || v[url] === "true"
     })
-  }
+  })
 })
 
 chrome.storage.onChanged.addListener(async (changes, areaName) => {
-  if (areaName === "sync" && changes.untilExit) {
-    chrome.runtime.sendMessage({
-      type: "RE_INIT",
-      data: JSON.parse(changes.untilExit.newValue).includes(
-        window.location.href
-      )
-    })
+  if (areaName === "sync") {
+    if (changes.untilExit) {
+      chrome.runtime.sendMessage({
+        type: "INIT",
+        data: JSON.parse(changes.untilExit.newValue).includes(url)
+      })
+    }
+    if (changes[url]) {
+      console.log(JSON.parse(changes[url].newValue))
+      chrome.runtime.sendMessage({
+        type: "INIT",
+        data: changes[url].newValue === "true"
+      })
+    }
   }
 })
+
+window.addEventListener("beforeunload", () => {
+  sessionStorage.setItem("isReloading", url)
+})
+
+if (sessionStorage.getItem("isReloading") === url) {
+} else {
+  chrome.storage.sync.get().then((v) => {
+    chrome.storage.sync.set({
+      untilExit: JSON.stringify(
+        JSON.parse(v.untilExit).filter(
+          (url) => url !== sessionStorage.getItem("isReloading")
+        )
+      )
+    })
+  })
+}

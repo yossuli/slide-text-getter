@@ -17,13 +17,13 @@ const IndexPopup = () => {
         setCurrentUrl(tabs[0].url)
       }
     })
-  }, [])
+  }, [chrome.tabs])
 
   const handleEnabled = async () => {
     setIsEnabled(!isEnabled)
   }
   const handleEnableUntilExit = async () => {
-    if (isEnableUntilExit.includes(currentUrl)) {
+    if (isEnableUntilExit?.includes(currentUrl)) {
       setIsEnableUntilExit(
         isEnableUntilExit.filter((url) => url !== currentUrl)
       )
@@ -31,6 +31,7 @@ const IndexPopup = () => {
       setIsEnableUntilExit([...isEnableUntilExit, currentUrl])
     }
   }
+
   return (
     <div
       style={{

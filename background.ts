@@ -9,19 +9,10 @@ chrome.runtime.onMessage.addListener(async (message) => {
   }
 })
 
-chrome.runtime.onMessage.addListener(async (message, _, sendResponse) => {
-  if (message.type === "INIT") {
-    const res = await sendToContentScript({
-      name: "INIT_FROM_BACKGROUND"
-    })
-    sendResponse(res)
-  }
-})
-
 chrome.runtime.onMessage.addListener(async (message) => {
-  if (message.type === "RE_INIT") {
-    await sendToContentScript({
-      name: "RE_INIT_FROM_BACKGROUND",
+  if (message.type === "INIT") {
+    sendToContentScript({
+      name: "INIT_FROM_BACKGROUND",
       body: message.data
     })
   }

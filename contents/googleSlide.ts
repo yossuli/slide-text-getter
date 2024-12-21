@@ -26,23 +26,14 @@ const content = (untilExit: boolean) => {
 
     window.addEventListener("resize", addListenersToExistingElements)
   } else {
-    window.addEventListener("beforeunload", () => {
-      chrome.storage.sync.set({ untilExit: true })
-    })
+    window.removeEventListener("resize", addListenersToExistingElements)
     observer.disconnect()
     deleteButtons()
-    console.log(2, "observerを停止")
   }
 }
-chrome.storage.sync.get().then(async (v) => {
-  if (isInIframe) {
-    const res = await chrome.runtime.sendMessage({ type: "INIT" })
-    content(!res)
-  }
-})
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.name === "RE_INIT_FROM_BACKGROUND") {
+  if (message.name === "INIT_FROM_BACKGROUND") {
     content(!message.body)
   }
 })
