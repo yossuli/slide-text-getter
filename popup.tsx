@@ -7,10 +7,9 @@ import { ToggleSlideButton } from "~component/ToggleSlideButton"
 const IndexPopup = () => {
   const [currentUrl, setCurrentUrl] = useState("")
   const [isEnabled, setIsEnabled] = useStorage(currentUrl, false)
-  const [isEnableUntilExit, setIsEnableUntilExit] = useStorage(
-    "untilExit",
+  const [isEnableUntilExit, setIsEnableUntilExit] = useStorage("untilExit", [
     null
-  )
+  ])
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -24,9 +23,14 @@ const IndexPopup = () => {
     setIsEnabled(!isEnabled)
   }
   const handleEnableUntilExit = async () => {
-    setIsEnableUntilExit(isEnableUntilExit === currentUrl ? null : currentUrl)
+    if (isEnableUntilExit.includes(currentUrl)) {
+      setIsEnableUntilExit(
+        isEnableUntilExit.filter((url) => url !== currentUrl)
+      )
+    } else {
+      setIsEnableUntilExit([...isEnableUntilExit, currentUrl])
+    }
   }
-
   return (
     <div
       style={{
@@ -54,13 +58,13 @@ const IndexPopup = () => {
         <h3>このページを離れるまで拡張機能を無効化する</h3>
         <input
           type="checkbox"
-          checked={isEnableUntilExit === currentUrl}
+          checked={isEnableUntilExit?.includes(currentUrl)}
           onChange={handleEnableUntilExit}
           style={{ display: "none" }}
           id="until_leave"
         />
         <ToggleSlideButton
-          checked={isEnableUntilExit === currentUrl}
+          checked={isEnableUntilExit?.includes(currentUrl)}
           htmlFor="until_leave"
           colors={["#ccc", "#3f51b5"]}
         />

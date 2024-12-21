@@ -1,29 +1,27 @@
 import { sendToContentScript } from "@plasmohq/messaging"
 
-// chrome.runtime.onInstalled.addListener(() => {
-//   chrome.contextMenus.create({
-//     id: "copy-to-clipboard",
-//     title: "クリップボードにコピー",
-//     contexts: ["all"]
-//   })
-// })
-
-// chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-//   if (info.menuItemId === "copy-to-clipboard") {
-//     const res = await sendToContentScript({
-//       name: "copyToClipboard"
-//     })
-//     await sendToContentScript({
-//       name: "copyToEditSpace",
-//       body: res
-//     })
-//   }
-// })
-
 chrome.runtime.onMessage.addListener(async (message) => {
   if (message.type === "COPY_TO_CLIPBOARD") {
-    const res = await sendToContentScript({
+    await sendToContentScript({
       name: "COPY_TO_CLIPBOARD_FROM_BACKGROUND",
+      body: message.data
+    })
+  }
+})
+
+chrome.runtime.onMessage.addListener(async (message, _, sendResponse) => {
+  if (message.type === "INIT") {
+    const res = await sendToContentScript({
+      name: "INIT_FROM_BACKGROUND"
+    })
+    sendResponse(res)
+  }
+})
+
+chrome.runtime.onMessage.addListener(async (message) => {
+  if (message.type === "RE_INIT") {
+    await sendToContentScript({
+      name: "RE_INIT_FROM_BACKGROUND",
       body: message.data
     })
   }

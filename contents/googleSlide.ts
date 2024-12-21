@@ -15,7 +15,7 @@ export const isInIframe = isInIframeUtil()
 const observer = new MutationObserver(handleCopyButtons)
 
 const content = (untilExit: boolean) => {
-  if (!untilExit) {
+  if (untilExit) {
     addListenersToExistingElements()
 
     observer.observe(document.body, {
@@ -34,26 +34,15 @@ const content = (untilExit: boolean) => {
     console.log(2, "observerを停止")
   }
 }
-chrome.storage.sync.get().then((v) => {
+chrome.storage.sync.get().then(async (v) => {
   if (isInIframe) {
-    console.log(1, v.untilExit.replaceAll('"', "").replaceAll("'", ""))
-    content(
-      v.untilExit.replaceAll('"', "").replaceAll("'", "") ===
-        window.location.href
-    )
+    const res = await chrome.runtime.sendMessage({ type: "INIT" })
+    content(!res)
   }
 })
 
-chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === "sync" && changes.untilExit) {
-    console.log(
-      3,
-      changes.untilExit.newValue.replaceAll('"', "").replaceAll("'", ""),
-      window.top
-    )
-    content(
-      changes.untilExit.newValue.replaceAll('"', "").replaceAll("'", "") ===
-        window.top
-    )
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.name === "RE_INIT_FROM_BACKGROUND") {
+    content(!message.body)
   }
 })
