@@ -31,21 +31,29 @@ const content = (untilExit: boolean) => {
     })
     observer.disconnect()
     deleteButtons()
-    console.log("observerを停止")
+    console.log(2, "observerを停止")
   }
 }
-chrome.storage.sync.get("untilExit").then((v) => {
+chrome.storage.sync.get().then((v) => {
   if (isInIframe) {
-    content(v.untilExit === "true")
+    console.log(1, v.untilExit.replaceAll('"', "").replaceAll("'", ""))
+    content(
+      v.untilExit.replaceAll('"', "").replaceAll("'", "") ===
+        window.location.href
+    )
   }
 })
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.name === "CHANGE_SETTINGS_FROM_BACKGROUND") {
-    chrome.storage.sync.get("untilExit").then((v) => {
-      if (isInIframe) {
-        content(v.untilExit === "true")
-      }
-    })
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "sync" && changes.untilExit) {
+    console.log(
+      3,
+      changes.untilExit.newValue.replaceAll('"', "").replaceAll("'", ""),
+      window.top
+    )
+    content(
+      changes.untilExit.newValue.replaceAll('"', "").replaceAll("'", "") ===
+        window.top
+    )
   }
 })

@@ -28,11 +28,3 @@ chrome.runtime.onMessage.addListener(async (message) => {
     })
   }
 })
-
-chrome.runtime.onMessage.addListener(async (message) => {
-  if (message.type === "CHANGE_SETTINGS_FROM_POPUP") {
-    await sendToContentScript({
-      name: "CHANGE_SETTINGS_FROM_BACKGROUND"
-    })
-  }
-})

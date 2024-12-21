@@ -9,7 +9,7 @@ const IndexPopup = () => {
   const [isEnabled, setIsEnabled] = useStorage(currentUrl, false)
   const [isEnableUntilExit, setIsEnableUntilExit] = useStorage(
     "untilExit",
-    false
+    null
   )
 
   useEffect(() => {
@@ -20,19 +20,11 @@ const IndexPopup = () => {
     })
   }, [])
 
-  const sendMessage = () => {
-    chrome.runtime.sendMessage({ type: "CHANGE_SETTINGS_FROM_POPUP" })
-  }
-
-  const handleEnabled = () => {
+  const handleEnabled = async () => {
     setIsEnabled(!isEnabled)
-    console.log("change isEnabled")
-    sendMessage()
   }
-  const handleEnableUntilExit = () => {
-    setIsEnableUntilExit(!isEnableUntilExit)
-    console.log("change isEnableUntilExit")
-    sendMessage()
+  const handleEnableUntilExit = async () => {
+    setIsEnableUntilExit(isEnableUntilExit === currentUrl ? null : currentUrl)
   }
 
   return (
@@ -62,13 +54,13 @@ const IndexPopup = () => {
         <h3>このページを離れるまで拡張機能を無効化する</h3>
         <input
           type="checkbox"
-          checked={isEnableUntilExit}
+          checked={isEnableUntilExit === currentUrl}
           onChange={handleEnableUntilExit}
           style={{ display: "none" }}
           id="until_leave"
         />
         <ToggleSlideButton
-          checked={isEnableUntilExit}
+          checked={isEnableUntilExit === currentUrl}
           htmlFor="until_leave"
           colors={["#ccc", "#3f51b5"]}
         />
