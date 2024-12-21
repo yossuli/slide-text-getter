@@ -1,6 +1,7 @@
 import type { PlasmoCSConfig } from "plasmo"
 
 import { addListenersToExistingElements } from "~features/googleSlide/addListenersToExistingElements"
+import { deleteButtons } from "~features/googleSlide/deleteButtons"
 import { handleCopyButtons } from "~features/googleSlide/handleCopyButtons"
 import { isInIframe as isInIframeUtil } from "~features/googleSlide/isInIframe"
 
@@ -29,6 +30,7 @@ const content = (untilExit: boolean) => {
       chrome.storage.sync.set({ untilExit: true })
     })
     observer.disconnect()
+    deleteButtons()
     console.log("observerを停止")
   }
 }
