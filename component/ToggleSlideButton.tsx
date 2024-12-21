@@ -25,7 +25,7 @@ export const ToggleSlideButton = ({
             height: "18px",
             background: checked ? color1 : color2,
             borderRadius: "50%",
-            marginLeft: checked ? "20px" : "4px",
+            marginLeft: checked ? "26px" : "4px",
             transition: "margin-left 0.3s"
           }}></div>
       </div>
