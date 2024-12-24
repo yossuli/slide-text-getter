@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 
 import { useStorage } from "@plasmohq/storage/hook"
 
@@ -6,10 +6,11 @@ import { ToggleSlideButton } from "~component/ToggleSlideButton"
 
 const IndexPopup = () => {
   const [currentUrl, setCurrentUrl] = useState("")
-  const [isEnabled, setIsEnabled] = useStorage(currentUrl, false)
-  const [isEnableUntilExit, setIsEnableUntilExit] = useStorage("untilExit", [
-    null
-  ])
+  const [enabledUrls, setEnabledUrls] = useStorage("disableUrls", [])
+  const [enableUntilExitUrls, setEnableUntilExitUrls] = useStorage(
+    "disableUntilExitUrls",
+    []
+  )
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -19,16 +20,31 @@ const IndexPopup = () => {
     })
   }, [chrome.tabs])
 
+  const isEnabled = useMemo(() => {
+    return (
+      enabledUrls?.findIndex((url: string) => currentUrl.startsWith(url)) !== -1
+    )
+  }, [enabledUrls, currentUrl])
+
+  const isEnableUntilExit = useMemo(
+    () => enableUntilExitUrls?.includes(currentUrl),
+    [enableUntilExitUrls, currentUrl]
+  )
+
   const handleEnabled = async () => {
-    setIsEnabled(!isEnabled)
+    if (isEnabled) {
+      setEnabledUrls(enabledUrls.filter((url) => url !== currentUrl))
+    } else {
+      setEnabledUrls([...enabledUrls, currentUrl])
+    }
   }
   const handleEnableUntilExit = async () => {
-    if (isEnableUntilExit?.includes(currentUrl)) {
-      setIsEnableUntilExit(
-        isEnableUntilExit.filter((url) => url !== currentUrl)
+    if (isEnableUntilExit) {
+      setEnableUntilExitUrls(
+        enableUntilExitUrls.filter((url) => url !== currentUrl)
       )
     } else {
-      setIsEnableUntilExit([...isEnableUntilExit, currentUrl])
+      setEnableUntilExitUrls([...enableUntilExitUrls, currentUrl])
     }
   }
 
@@ -56,20 +72,28 @@ const IndexPopup = () => {
         />
       </div>
       <div style={{ display: "flex", alignItems: "center", marginTop: 16 }}>
-        <h3>このページを離れるまで拡張機能を無効化する</h3>
+        <h3>このページを離れるまで拡張機能を無効化する（不安定）</h3>
         <input
           type="checkbox"
-          checked={isEnableUntilExit?.includes(currentUrl)}
+          checked={isEnableUntilExit}
           onChange={handleEnableUntilExit}
           style={{ display: "none" }}
           id="until_leave"
         />
         <ToggleSlideButton
-          checked={isEnableUntilExit?.includes(currentUrl)}
+          checked={isEnableUntilExit}
           htmlFor="until_leave"
           colors={["#ccc", "#3f51b5"]}
         />
       </div>
+      <a
+        href="options.html"
+        onClick={(e) => {
+          e.preventDefault()
+          chrome.tabs.create({ url: "options.html" })
+        }}>
+        option page
+      </a>
     </div>
   )
 }
