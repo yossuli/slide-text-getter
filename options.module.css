@@ -1,0 +1,106 @@
+.container {
+  width: fit-content;
+  margin: auto;
+}
+
+h1 {
+  font-size: 2.5rem;
+  /* text-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.2); */
+}
+
+h2 {
+  font-size: 2rem;
+  /* text-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.2); */
+}
+
+h3 {
+  font-size: 1.5rem;
+  /* text-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.2); */
+}
+
+h3 > a {
+  display: flex;
+}
+
+p,
+input {
+  font-size: 1.25rem;
+  margin: 0 0.75rem;
+  font-family: inherit;
+}
+
+input {
+  border: none;
+  border-bottom: 1px solid black;
+  padding: 0.1rem 0.5rem;
+  /* border-radius: 0.2rem; */
+  /* box-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.1); */
+}
+
+input:focus-visible {
+  outline: none;
+  border-bottom: 3px solid black;
+}
+
+button {
+  font-size: 1.25rem;
+  font-family: inherit;
+  border: none;
+  background-color: #f1f1f1;
+  padding: 0.1rem 1rem;
+  cursor: pointer;
+  border-radius: 0.2rem;
+  box-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.1);
+}
+
+@keyframes button {
+  0% {
+    box-shadow: none;
+  }
+  100% {
+    box-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.1);
+  }
+}
+
+button:hover {
+  background-color: #e1e1e1;
+}
+button:focus:not(:active) {
+  animation: button 0.5s ease;
+}
+
+.editButton {
+  display: flex;
+  color: red;
+  cursor: pointer;
+  text-decoration: none;
+  width: 1rem;
+  aspect-ratio: 1/1;
+  background-color: #e1e1e1;
+  margin: 0 auto;
+  margin-top: 0.25rem;
+  position: relative;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.editButton:hover {
+  background-color: #d1d1d1;
+}
+
+.editButton::before,
+.editButton::after {
+  border-bottom: 1px solid black;
+  content: "";
+  position: absolute;
+  width: 1rem;
+  top: 0.75rem;
+}
+
+.editButton::before {
+  transform: rotate(45deg);
+}
+
+.editButton::after {
+  transform: rotate(-45deg);
+}
