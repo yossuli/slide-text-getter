@@ -23,10 +23,9 @@ chrome.runtime.onMessage.addListener((message) => {
 
 window.addEventListener("load", () => {
   chrome.storage.sync.get().then(async (v) => {
-    console.log(v)
     chrome.runtime.sendMessage({
       type: "INIT",
-      data: JSON.parse(v.untilExit)?.includes(url) || v[url] === "true"
+      data: JSON.parse(v.untilExit ?? "[]")?.includes(url) || v[url] === "true"
     })
   })
 })
@@ -40,7 +39,6 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
       })
     }
     if (changes[url]) {
-      console.log(JSON.parse(changes[url].newValue))
       chrome.runtime.sendMessage({
         type: "INIT",
         data: changes[url].newValue === "true"
