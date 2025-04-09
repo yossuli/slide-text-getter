@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 
+import Tree from "~features/options/Tree"
 import { Url } from "~features/options/Url"
 import { useStorage } from "~node_modules/@plasmohq/storage/dist/hook"
 
@@ -22,7 +23,7 @@ const OptionIndex = () => {
       <h1>Slide Text Getter</h1>
       <p>
         ここは
-        <a
+        {/* <a
           href="https://moocs.iniad.org"
           onClick={(e) => {
             e.preventDefault()
@@ -32,10 +33,10 @@ const OptionIndex = () => {
           }}>
           moocs
         </a>
-        用の拡張機能「Slide Text Getter」の設定画面です
+        用の拡張機能「Slide Text Getter」の設定画面です */}
       </p>
       <h2>無効化するurlを追加</h2>
-      <input
+      {/* <input
         type="text"
         value={`https://moocs.iniad.org/${addDisableUrl}`}
         style={{ width: `${width}px` }}
@@ -53,7 +54,7 @@ const OptionIndex = () => {
 
           setAddDisableUrl(`${addDisableUrl}${input}`)
         }}
-      />
+      /> */}
       <span
         ref={ref}
         style={{
@@ -74,6 +75,7 @@ const OptionIndex = () => {
         Add
       </button>
       <h2>無効化リスト</h2>
+      {/*
       <p>
         個別に拡張機能を無効化したmoocsページの、無効化の解除及び無効化範囲の修正を行えます
       </p>
@@ -98,7 +100,23 @@ const OptionIndex = () => {
             />
           </li>
         ))}
-      </ul>
+      </ul> */}
+      <Tree
+        data={[
+          {
+            url: "https://hoge",
+            isAble: true
+          },
+          {
+            url: "https://hoge/fuga",
+            isAble: false
+          },
+          {
+            url: "https://hoge/fuga/hogehoge",
+            isAble: true
+          }
+        ]}
+      />
     </div>
   )
 }
